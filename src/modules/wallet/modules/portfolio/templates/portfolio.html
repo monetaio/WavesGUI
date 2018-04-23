@@ -22,7 +22,7 @@
     </div>
 
     <w-smart-table data="$ctrl.balanceList" header-info="$ctrl.tableHeaders">
-        <w-table-row ng-repeat="balance in $data track by balance.asset.id">
+        <w-table-row w-repeat="balance in $data track by balance.asset.id">
             <w-table-cell>
                 <w-asset-logo class="margin-right-1" asset-id="{{::balance.asset.id}}" size="30"></w-asset-logo>
                 {{::balance.asset.name}}
