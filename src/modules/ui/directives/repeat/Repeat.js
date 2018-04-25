@@ -39,12 +39,12 @@
 
                         constructor() {
                             /**
-                             * @type {Array}
+                             * @type {Array<Repeat.IListItem>}
                              * @private
                              */
                             this._list = [];
                             /**
-                             * @type {Array}
+                             * @type {Array<Repeat.IListItem>}
                              * @private
                              */
                             this._visibleList = [];
@@ -64,7 +64,7 @@
                              */
                             this._idKey = match[4].replace(`${match[1]}.`, '');
                             /**
-                             * @type {string}
+                             * @type {Object.<string, Repeat.IHashItem>}
                              * @private
                              */
                             this._itemsHash = Object.create(null);
@@ -86,29 +86,31 @@
                         @decorators.async()
                         _updateList(collection) {
                             const hash = utils.toHash(collection || [], this._idKey);
+                            /**
+                             * @type {Array<Repeat.IListItem>}
+                             */
                             const list = [];
                             const toRemove = [];
+                            /**
+                             * @type {Array<Repeat.IListItem>}
+                             */
                             const toAdd = [];
 
-                            this._list.forEach((item) => {
-                                const id = tsUtisls.get(item, this._idKey);
-
-                                if (hash[id]) {
-                                    list.push(item);
-                                } else {
+                            this._list.forEach(({ id }) => {
+                                if (!hash[id]) {
                                     toRemove.push(id);
                                 }
                             });
 
                             if (collection && collection.length) {
-                                collection.forEach((item) => {
-                                    const id = tsUtisls.get(item, this._idKey);
+                                collection.forEach((data) => {
+                                    const id = tsUtisls.get(data, this._idKey);
 
                                     if (!this._itemsHash[id]) {
-                                        toAdd.push(item);
+                                        toAdd.push({ id, data });
                                     }
 
-                                    list.push(item);
+                                    list.push({ id, data });
                                 });
                             }
 
@@ -125,33 +127,82 @@
                          * @private
                          */
                         _draw() {
-                            this._list.forEach((item) => {
-                                const id = tsUtisls.get(item, this._idKey);
-                                const itemData = this._itemsHash[id];
+                            if (!this._list.length) {
+                                return null;
+                            }
 
-                                if (!itemData.isDrawn) {
-                                    this._node.appendChild(itemData.node);
-                                    itemData.isDrawn = true;
+                            const node = this._node;
+                            const minHeight = innerHeight;
+                            const height = this._getHeight();
+                            const count = Math.min(Math.round(minHeight / height), this._list.length);
+
+                            if (!this._visibleList.length) {
+                                const fragment = document.createDocumentFragment();
+
+                                for (let i = 0; i < count; i++) {
+                                    fragment.appendChild(this._itemsHash[this._list[i].id].node);
+                                    this._visibleList.push(this._list[i]);
                                 }
-                            });
+
+                                node.appendChild(fragment);
+                                return null;
+                            }
+
+                            for (let i = 0; i < count; i++) {
+                                const item = this._list[i];
+                                if (item.id === this._visibleList[i].id) {
+                                    continue;
+                                }
+                                this._addByIndex(this._itemsHash[item.id].node, i);
+                                this._visibleList.splice(i, 0, item);
+                            }
+
+                            for (let i = count; i < this._visibleList.length; i++) {
+                                node.removeChild(this._itemsHash[this._visibleList[i].id].node);
+                            }
                         }
 
                         /**
-                         * @param list
+                         * @param {HTMLElement} node
+                         * @param {number} index
+                         * @private
+                         */
+                        _addByIndex(node, index) {
+                            const childrenCount = this._node.childNodes.length;
+                            if (index < childrenCount) {
+                                this._node.insertBefore(node, this._node.childNodes[index]);
+                            } else {
+                                this._node.appendChild(node);
+                            }
+                        }
+
+                        _getHeight() {
+                            if (!this._list[0]) {
+                                return 0;
+                            }
+                            const id = this._list[0].id;
+                            const child = this._itemsHash[id].node;
+                            this._node.appendChild(child);
+                            const height = child.clientHeight;
+                            this._node.removeChild(child);
+                            return height;
+                        }
+
+                        /**
+                         * @param {Repeat.IListItem[]} list
                          * @private
                          */
                         _add(list) {
-                            list.forEach((item) => {
-                                const id = tsUtisls.get(item, this._idKey);
+                            list.forEach(({ id, data }) => {
 
                                 $transclude(($clone, $scope) => {
                                     const node = $clone.get(0);
-                                    $scope[this._itemDataKey] = item;
+                                    $scope[this._itemDataKey] = data;
                                     this._itemsHash[id] = {
                                         id,
                                         node,
                                         $scope,
-                                        isDrawn: false
+                                        data
                                     };
                                 });
                             });
@@ -165,7 +216,9 @@
                             idList.forEach((id) => {
                                 if (this._itemsHash[id]) {
                                     this._itemsHash[id].$scope.$destroy();
-                                    this._node.removeChild(this._itemsHash[id].node);
+                                    if (this._itemsHash[id].node.parentNode) {
+                                        this._node.removeChild(this._itemsHash[id].node);
+                                    }
                                     delete this._itemsHash[id];
                                 }
                             });
@@ -179,7 +232,25 @@
         };
     };
 
-    directive.$inject = ['utils', 'decoratros'];
+    directive.$inject = ['utils', 'decorators'];
 
     angular.module('app.ui').directive('wRepeat', directive);
 })();
+
+/**
+ * @name Repeat
+ */
+
+/**
+ * @typedef {object} Repeat#IListItem
+ * @property {string|number} id
+ * @property {object} data
+ */
+
+/**
+ * @typedef {object} Repeat#IHashItem
+ * @property {string} id
+ * @property {HTMLElement} node
+ * @property {$rootScope.Scope} $scope
+ * @property {object} data
+ */
