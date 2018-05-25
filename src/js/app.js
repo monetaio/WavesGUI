@@ -49,6 +49,7 @@ function AngularApplicationConfig($provide, $compileProvider, $validatorProvider
         }));
 
     $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|local|data|file|chrome-extension):/);
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|tel|file|blob|chrome-extension):/);
     $qProvider.errorOnUnhandledRejections(false);
     $sceDelegateProvider.resourceUrlWhitelist([
         'self',

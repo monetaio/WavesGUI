@@ -81,7 +81,15 @@
             <button id="import_account" class="wButton fade" tooltipster tooltip-theme="tooltipster-theme1" title="Click here to import an existing account." ng-click="list.importAccount()">IMPORT ACCOUNT</button>
             <span class="divider-1"></span>
             <button id="create_account" class="wButton fade" tooltipster tooltip-theme="tooltipster-theme1" title="Click here to create a brand new account." ng-click="list.createAccount()">NEW ACCOUNT</button>
+            <span class="divider-1"></span>
+            <button id="export_accounts" class="wButton fade" tooltipster tooltip-theme="tooltipster-theme1" title="Click here to export your accounts to a new client." ng-click="list.showExportDialog()">EXPORT ACCOUNTS</button>
             <br/>
+
+            <div id="export-accounts-popup" waves-dialog on-dialog-ok="list.cleanupExportUrl()" cancel-button-visible="false">
+              <h2 class="sectionHeader">EXPORT ACCOUNTS</h2>
+              <p class="dialog-text">Click the link below to export your accounts in a file. <br/>Save the file and import it into a new client</p>
+              <p class="dialog-text textCenter"><a download="accounts.txt" ng-href="{{list.exportUrl}}">Download</a></p>
+            </div>
 
             <!-- Remove Account popup -->
             <div id="account-remove-popup" waves-dialog on-dialog-ok="list.removeAccount()" is-error="true" ok-button-caption="REMOVE">
