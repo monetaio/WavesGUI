@@ -54,7 +54,7 @@
             };
 
             var content = JSON.stringify(dump);
-            var blob = new Blob([ content ], { type: "text/plain" });
+            var blob = new Blob([content], { type: 'text/plain' });
             list.exportUrl = URL().createObjectURL(blob);
 
             dialogService.open('#export-accounts-popup');
