@@ -190,11 +190,11 @@ const indexPromise = readFile(join(__dirname, 'src', 'index.hbs'), { encoding: '
     });
 
     task(`zip-${buildName}`, [
-        `concat-${buildName}-mainnet-min`,
-        `html-${buildName}-mainnet-min`,
-        `copy-${buildName}-mainnet-min`
+        `concat-${buildName}-testnet-min`,
+        `html-${buildName}-testnet-min`,
+        `copy-${buildName}-testnet-min`
     ], function () {
-        return gulp.src(`dist/${buildName}/mainnet/min/**/*.*`)
+        return gulp.src(`dist/${buildName}/testnet/min/**/*.*`)
             .pipe(zip(`${pack.name}-${buildName}-v${pack.version}.zip`))
             .pipe(gulp.dest('dist'));
     });
